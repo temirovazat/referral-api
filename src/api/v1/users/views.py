@@ -12,7 +12,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.serializers import (TokenRefreshSerializer,
+                                                  TokenVerifySerializer)
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from users.models import AuthCode
 
 from .serializers import (PhoneSendCodeSerializer, PhoneTokenSerializer,
@@ -44,6 +47,7 @@ class PhoneSendCodeView(APIView):
     """View to send authentication code to the users phone."""
 
     permission_classes = (AllowAny,)
+    serializer_class = PhoneSendCodeSerializer
 
     def post(self, request):
         """
@@ -55,7 +59,7 @@ class PhoneSendCodeView(APIView):
         Raises:
         - `400 Bad Request` if the serializer is not valid.
         """
-        serializer = PhoneSendCodeSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
 
         if not serializer.is_valid():
             return Response(
@@ -82,6 +86,7 @@ class PhoneTokenView(APIView):
     """View to exchange authentication code for an access token."""
 
     permission_classes = (AllowAny,)
+    serializer_class = PhoneTokenSerializer
 
     def post(self, request):
         """
@@ -95,7 +100,7 @@ class PhoneTokenView(APIView):
         - `400 Bad Request` if the serializer is not valid.
         - `403 Forbidden` for incorrect code or expired code.
         """
-        serializer = PhoneTokenSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
 
         if not serializer.is_valid():
             return Response(
@@ -145,3 +150,57 @@ class PhoneTokenView(APIView):
             {'access': access_token, 'refresh': str(refresh)},
             status=status.HTTP_200_OK
         )
+
+
+@extend_schema(tags=['Auth'])
+class TokenRefreshView(TokenRefreshView):
+    """
+    Custom view for refreshing an access token.
+
+    Extends the default TokenRefreshView to customize behavior.
+    """
+
+    serializer_class = TokenRefreshSerializer
+
+    def post(self, request, *args, **kwargs):
+        """
+        Refresh an access token.
+
+        Perform the token refresh and return the new access token.
+
+        Args:
+            request: The HTTP request.
+            args: Additional positional arguments.
+            kwargs: Additional keyword arguments.
+
+        Returns:
+            The HTTP response with the new access token.
+        """
+        return super().post(request, *args, **kwargs)
+
+
+@extend_schema(tags=['Auth'])
+class TokenVerifyView(TokenVerifyView):
+    """
+    Custom view for verifying an access token.
+
+    Extends the default TokenVerifyView to customize behavior.
+    """
+
+    serializer_class = TokenVerifySerializer
+
+    def post(self, request, *args, **kwargs):
+        """
+        Verify an access token.
+
+        Perform the token verification and return the verification result.
+
+        Args:
+            request: The HTTP request.
+            args: Additional positional arguments.
+            kwargs: Additional keyword arguments.
+
+        Returns:
+            The HTTP response with the verification result.
+        """
+        return super().post(request, *args, **kwargs)
