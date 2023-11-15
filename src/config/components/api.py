@@ -17,5 +17,6 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Referral API',
     'VERSION': '1.0.0',
+    'DESCRIPTION': 'API service with phone number authentication and a simple referral system.',
     'SERVE_INCLUDE_SCHEMA': False,
 }

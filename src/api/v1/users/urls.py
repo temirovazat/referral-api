@@ -1,6 +1,7 @@
-from api.utils import OptionalSlashRouter
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
+
+from api.utils import OptionalSlashRouter
 
 from . import views
 

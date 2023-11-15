@@ -16,6 +16,7 @@ from rest_framework_simplejwt.serializers import (TokenRefreshSerializer,
                                                   TokenVerifySerializer)
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
 from users.models import AuthCode
 
 from .serializers import (PhoneSendCodeSerializer, PhoneTokenSerializer,
@@ -53,14 +54,14 @@ class UserViewSet(ModelViewSet):
         return UserSerializer
 
     @extend_schema(
-        summary='Список пользователей',
+        summary='User list',
     )
     def list(self, request, *args, **kwargs):
         """Get a list of all users."""
         return super().list(request, *args, **kwargs)
 
     @extend_schema(
-        summary='Информация о пользователе',
+        summary='User information',
     )
     def retrieve(self, request, *args, **kwargs):
         """Get information about a specific user."""
@@ -76,8 +77,8 @@ class CurrentUserView(APIView):
     """
 
     @extend_schema(
-        summary='Текущий пользователь',
-        description='Возвращает текущего пользователя',
+        summary='Current user',
+        description='Returns the current user',
         responses={200: UserDetailsSerializer}
     )
     def get(self, request):
@@ -91,8 +92,8 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     @extend_schema(
-        summary='Текущий пользователь',
-        description='Изменение текущего пользователя',
+        summary='Current user',
+        description='Changing the current user',
         request=UserUpdateSerializer,
         responses={200: UserDetailsSerializer}
     )
@@ -131,9 +132,9 @@ class PhoneSendCodeView(APIView):
     serializer_class = PhoneSendCodeSerializer
 
     @extend_schema(
-        summary='Прислать код на номер телефона',
+        summary='Send the code to your phone number',
         description=(
-            'Присваивает указанному номеру телефона 4-х значный код и возвращает его в ответе.'
+            'Assigns a 4-digit code to the specified phone number and returns it in the response.'
         ),
         responses={
             status.HTTP_200_OK: inline_serializer(
@@ -182,7 +183,16 @@ class PhoneTokenView(APIView):
     serializer_class = PhoneTokenSerializer
 
     @extend_schema(
-        summary='Получение токенов по номеру телефона и коду',
+        summary='Getting tokens by phone number and code',
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name='tokens',
+                fields={
+                    'access': serializers.CharField(),
+                    'refresh': serializers.CharField()
+                }
+            )
+        }
     )
     def post(self, request):
         """
@@ -259,7 +269,7 @@ class TokenRefreshView(TokenRefreshView):
     serializer_class = TokenRefreshSerializer
 
     @extend_schema(
-        summary='Рефреш токена',
+        summary='Refresh token',
     )
     def post(self, request, *args, **kwargs):
         """
@@ -289,7 +299,7 @@ class TokenVerifyView(TokenVerifyView):
     serializer_class = TokenVerifySerializer
 
     @extend_schema(
-        summary='Проверка токена',
+        summary='Token verification',
     )
     def post(self, request, *args, **kwargs):
         """
