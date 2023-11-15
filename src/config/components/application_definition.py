@@ -12,6 +12,7 @@ INSTALLED_APPS = (
     'rest_framework_simplejwt',
     'django_filters',
     'phonenumber_field',
+    'drf_spectacular',
 
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
