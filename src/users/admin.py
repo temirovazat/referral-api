@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
-from .models import User
+from .models import AuthCode, User
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -41,6 +41,7 @@ class CustomUserCreationForm(UserCreationForm):
         return password2
 
 
+@admin.register(User)
 class CustomUserAdmin(BaseUserAdmin):
     """Custom admin configuration for the User model."""
 
@@ -71,4 +72,37 @@ class CustomUserAdmin(BaseUserAdmin):
     readonly_fields = ('invite_code',)
 
 
-admin.site.register(User, CustomUserAdmin)
+@admin.register(AuthCode)
+class AuthCodeAdmin(admin.ModelAdmin):
+    """Admin configuration for the AuthCode model."""
+
+    list_display = ('phone', 'created', 'expire_date')
+    readonly_fields = ('phone', 'created', 'expire_date')
+    exclude = ('code',)
+    ordering = ('-created',)
+
+    def has_add_permission(self, request, obj=None):
+        """
+        Determine whether the user has permission to add AuthCode instances.
+
+        Args:
+            request: The request object.
+            obj: The AuthCode instance being considered.
+
+        Returns:
+            bool: True if the user has permission to add AuthCode instances, False otherwise.
+        """
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """
+        Determine whether the user has permission to change AuthCode instances.
+
+        Args:
+            request: The request object.
+            obj: The AuthCode instance being considered.
+
+        Returns:
+            bool: True if the user has permission to change AuthCode instances, False otherwise.
+        """
+        return False
