@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -19,7 +19,8 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from users.models import AuthCode
 
 from .serializers import (PhoneSendCodeSerializer, PhoneTokenSerializer,
-                          UserSerializer)
+                          UserDetailsSerializer, UserSerializer,
+                          UserUpdateSerializer)
 
 User = get_user_model()
 
@@ -33,13 +34,93 @@ class UserViewSet(ModelViewSet):
     """
 
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('email', 'first_name', 'last_name',
                      'phone', 'invite_code', 'invited_by_code')
     filterset_fields = ('email', 'first_name', 'last_name',
                         'phone', 'invite_code', 'invited_by_code')
     http_method_names = ('get',)
+
+    def get_serializer_class(self):
+        """
+        Return the serializer class based on the action.
+
+        If the action is 'retrieve', return UserDetailsSerializer;
+        otherwise, return UserSerializer.
+        """
+        if self.action == 'retrieve':
+            return UserDetailsSerializer
+        return UserSerializer
+
+    @extend_schema(
+        summary='Список пользователей',
+    )
+    def list(self, request, *args, **kwargs):
+        """Get a list of all users."""
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='Информация о пользователе',
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Get information about a specific user."""
+        return super().retrieve(request, *args, **kwargs)
+
+
+@extend_schema(tags=['Users'])
+class CurrentUserView(APIView):
+    """
+    API view for managing the current user.
+
+    Provides endpoints for retrieving and updating the current user's information.
+    """
+
+    @extend_schema(
+        summary='Текущий пользователь',
+        description='Возвращает текущего пользователя',
+        responses={200: UserDetailsSerializer}
+    )
+    def get(self, request):
+        """
+        Retrieve details of the current user.
+
+        Returns:
+            Response: Serialized data of the current user.
+        """
+        serializer = UserDetailsSerializer(request.user)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary='Текущий пользователь',
+        description='Изменение текущего пользователя',
+        request=UserUpdateSerializer,
+        responses={200: UserDetailsSerializer}
+    )
+    def patch(self, request):
+        """
+        Update details of the current user.
+
+        Args:
+            request: Request object containing the updated user data.
+
+        Returns:
+            Response: Serialized data of the updated current user.
+        """
+        user = request.user
+        serializer = UserUpdateSerializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @extend_schema(tags=['Auth'])
@@ -49,6 +130,18 @@ class PhoneSendCodeView(APIView):
     permission_classes = (AllowAny,)
     serializer_class = PhoneSendCodeSerializer
 
+    @extend_schema(
+        summary='Прислать код на номер телефона',
+        description=(
+            'Присваивает указанному номеру телефона 4-х значный код и возвращает его в ответе.'
+        ),
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name='code',
+                fields={'code': serializers.IntegerField()}
+            )
+        }
+    )
     def post(self, request):
         """
         Handle POST requests for sending authentication code.
@@ -88,6 +181,9 @@ class PhoneTokenView(APIView):
     permission_classes = (AllowAny,)
     serializer_class = PhoneTokenSerializer
 
+    @extend_schema(
+        summary='Получение токенов по номеру телефона и коду',
+    )
     def post(self, request):
         """
         Handle POST requests for exchanging authentication code for an access token.
@@ -162,6 +258,9 @@ class TokenRefreshView(TokenRefreshView):
 
     serializer_class = TokenRefreshSerializer
 
+    @extend_schema(
+        summary='Рефреш токена',
+    )
     def post(self, request, *args, **kwargs):
         """
         Refresh an access token.
@@ -189,6 +288,9 @@ class TokenVerifyView(TokenVerifyView):
 
     serializer_class = TokenVerifySerializer
 
+    @extend_schema(
+        summary='Проверка токена',
+    )
     def post(self, request, *args, **kwargs):
         """
         Verify an access token.
