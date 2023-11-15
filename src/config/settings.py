@@ -21,6 +21,7 @@ include(
     'components/password_validation.py',
     'components/internationalization.py',
     'components/static_files.py',
+    'components/auth.py',
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

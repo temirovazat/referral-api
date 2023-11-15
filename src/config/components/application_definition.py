@@ -10,6 +10,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'django_filters',
     'phonenumber_field',
+    'users.apps.UsersConfig',
 )
 
 MIDDLEWARE = (
