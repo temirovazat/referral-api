@@ -18,6 +18,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 include(
     'components/application_definition.py',
     'components/api.py',
+    'components/http.py',
     'components/database.py',
     'components/password_validation.py',
     'components/internationalization.py',

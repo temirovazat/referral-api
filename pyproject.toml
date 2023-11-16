@@ -16,6 +16,8 @@ django-split-settings = "1.1"
 phonenumbers = "^8.13.18"
 djangorestframework-simplejwt = "^5.2.2"
 drf-spectacular = "^0.26.4"
+django-cors-headers = "^4.2.0"
+gunicorn = "^21.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
