@@ -57,7 +57,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """
         user = self.instance
 
-        if value == user.invite_code:
+        if value.lower() == user.invite_code.lower():
             raise serializers.ValidationError('Cannot specify your own code.')
 
         try:
