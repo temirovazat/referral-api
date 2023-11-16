@@ -34,7 +34,9 @@ class UserDetailsSerializer(UserSerializer):
 
         This method retrieves the list of users invited by the current user.
         """
-        invited_users = User.objects.filter(invited_by_code=obj.invite_code)
+        invited_users = User.objects.filter(
+            invited_by_code__iexact=obj.invite_code
+        )
         invited_serializer = InvitedUserSerializer(invited_users, many=True)
         return invited_serializer.data
 
@@ -55,7 +57,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """
         user = self.instance
 
-        if value == user.invite_code:
+        if value.lower() == user.invite_code.lower():
             raise serializers.ValidationError('Cannot specify your own code.')
 
         try:

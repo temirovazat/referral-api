@@ -111,7 +111,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         """
         if self.invited_by_code:
-            if self.invited_by_code == self.invite_code:
+            if self.invited_by_code.lower() == self.invite_code.lower():
                 raise ValidationError(
                     {'invited_by_code': 'Cannot specify your own code.'}
                 )
